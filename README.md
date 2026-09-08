@@ -161,7 +161,8 @@ asset, a valid signature, and nothing in the signed material to say otherwise.
 Reproduced on Base Sepolia, settled on chain:
 [`0xd95ea771333c8f33f346c316fad30a64585156831d09e298d501c5b1e17e5659`](https://sepolia.basescan.org/tx/0xd95ea771333c8f33f346c316fad30a64585156831d09e298d501c5b1e17e5659)
 
-Fixed in `@fatstack/x402` **0.2.0**. The middleware now binds a payment to the resource it
+Fixed in `@fatstack/x402` **0.2.0** (current release **0.2.1**, which is the same code
+under the correct MIT licence metadata). The middleware now binds a payment to the resource it
 was quoted for and refuses a mismatch with `resource_mismatch`, before the facilitator is
 called — so a mismatched payment costs nothing and is never settled. Nothing a 402 quotes
 to agents changed.

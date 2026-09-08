@@ -1,6 +1,6 @@
 {
   "name": "@fatstack/x402",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "x402 paywall middleware and a spend-guarded paying fetch for AI agents. USDC on Base.",
   "license": "MIT",
   "homepage": "https://fatstack.net",
