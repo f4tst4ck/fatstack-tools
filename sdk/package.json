@@ -1,0 +1,112 @@
+{
+  "name": "@fatstack/x402",
+  "version": "0.2.0",
+  "description": "x402 paywall middleware and a spend-guarded paying fetch for AI agents. USDC on Base.",
+  "license": "MIT",
+  "homepage": "https://fatstack.net",
+  "keywords": [
+    "x402",
+    "usdc",
+    "base",
+    "mcp",
+    "ai-agents",
+    "micropayments"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./provider": {
+      "types": "./dist/provider.d.ts",
+      "import": "./dist/provider.js",
+      "require": "./dist/provider.cjs"
+    },
+    "./client": {
+      "types": "./dist/client.d.ts",
+      "import": "./dist/client.js",
+      "require": "./dist/client.cjs"
+    },
+    "./testing": {
+      "types": "./dist/testing.d.ts",
+      "import": "./dist/testing.js",
+      "require": "./dist/testing.cjs"
+    },
+    "./hono": {
+      "types": "./dist/hono.d.ts",
+      "import": "./dist/hono.js",
+      "require": "./dist/hono.cjs"
+    },
+    "./express": {
+      "types": "./dist/express.d.ts",
+      "import": "./dist/express.js",
+      "require": "./dist/express.cjs"
+    },
+    "./next": {
+      "types": "./dist/next.d.ts",
+      "import": "./dist/next.js",
+      "require": "./dist/next.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint src --config ../eslint.config.mjs"
+  },
+  "dependencies": {
+    "@x402/core": "^2.24.0",
+    "@x402/evm": "^2.24.0",
+    "@x402/fetch": "^2.24.0",
+    "zod": "^3.24.1"
+  },
+  "peerDependencies": {
+    "@x402/express": "^2.24.0",
+    "@x402/hono": "^2.24.0",
+    "@x402/next": "^2.24.0"
+  },
+  "peerDependenciesMeta": {
+    "@x402/hono": {
+      "optional": true
+    },
+    "@x402/express": {
+      "optional": true
+    },
+    "@x402/next": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.2",
+    "@x402/express": "^2.24.0",
+    "@x402/hono": "^2.24.0",
+    "@x402/next": "^2.24.0",
+    "express": "^4.21.2",
+    "hono": "^4.6.14",
+    "next": "^16.2.6",
+    "react": "^19.0.0",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "viem": "^2.21.55",
+    "vitest": "^2.1.8"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/f4tst4ck/fatstack-tools.git",
+    "directory": "sdk"
+  },
+  "bugs": {
+    "url": "https://github.com/f4tst4ck/fatstack-tools/issues"
+  }
+}

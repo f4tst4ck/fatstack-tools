@@ -1,0 +1,63 @@
+{
+  "name": "@fatstack/ai-sdk-tools",
+  "version": "0.1.0",
+  "description": "Vercel AI SDK tools that discover Fatstack listings and pay per call in USDC via x402 on Base",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "keywords": [
+    "ai-sdk",
+    "vercel-ai",
+    "x402",
+    "mcp",
+    "usdc",
+    "base",
+    "agent-payments"
+  ],
+  "homepage": "https://www.fatstack.net",
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --config ../eslint.config.mjs",
+    "example": "tsx example/pay-for-a-tool.ts"
+  },
+  "peerDependencies": {
+    "ai": "^7.0.0"
+  },
+  "dependencies": {
+    "@fatstack/x402": "0.2.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "ai": "^7.0.92",
+    "tsup": "^8.3.5",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.9",
+    "tsx": "^4.19.2",
+    "viem": "^2.56.1",
+    "@hono/node-server": "^2.1.1",
+    "hono": "^4.13.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/f4tst4ck/fatstack-tools.git",
+    "directory": "integrations/ai-sdk-tools"
+  },
+  "bugs": {
+    "url": "https://github.com/f4tst4ck/fatstack-tools/issues"
+  }
+}

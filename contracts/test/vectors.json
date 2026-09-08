@@ -1,0 +1,55 @@
+{
+  "_comment": "Shared between the Solidity splitter and the TypeScript SDK. Both assert these exact pairs, so an on-chain split and the price we quote cannot drift. fee = floor(gross * 200 / 10000), remainder to the provider.",
+  "feeBps": 200,
+  "vectors": [
+    {
+      "gross": "0",
+      "fee": "0"
+    },
+    {
+      "gross": "1",
+      "fee": "0"
+    },
+    {
+      "gross": "49",
+      "fee": "0"
+    },
+    {
+      "gross": "50",
+      "fee": "1"
+    },
+    {
+      "gross": "99",
+      "fee": "1"
+    },
+    {
+      "gross": "100",
+      "fee": "2"
+    },
+    {
+      "gross": "149",
+      "fee": "2"
+    },
+    {
+      "gross": "500",
+      "fee": "10"
+    },
+    {
+      "gross": "1000",
+      "fee": "20"
+    },
+    {
+      "gross": "10000",
+      "fee": "200"
+    },
+    {
+      "gross": "1000000",
+      "fee": "20000"
+    },
+    {
+      "gross": "999999",
+      "fee": "19999"
+    }
+  ],
+  "count": 12
+}
