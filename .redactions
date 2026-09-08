@@ -1,0 +1,9 @@
+# Files whose public copy differs from the private one, and must never be blind-copied.
+# Checked by scripts/check-redactions.sh before every push.
+#
+# A `cp` from the private repo overwrote the redacted THREAT-MODEL.md once already. The
+# sync rule says "copy files across"; it did not say which files carry edits that a copy
+# destroys. This list does.
+facilitator/THREAT-MODEL.md
+contracts/GO-NO-GO.md
+docs/registry-format.md

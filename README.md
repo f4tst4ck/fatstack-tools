@@ -199,6 +199,12 @@ on-chain split and a quoted price cannot drift apart.
 No third party has reviewed it. Read it yourself before depending on it — it is about
 fifteen lines of code that move money and a hundred lines explaining why.
 
+## Contributing to this repository
+
+Some files here differ from their counterparts in the closed repository, because operator
+detail has been removed. `.redactions` lists them and `scripts/check-redactions.sh` refuses
+anything that puts that material back. Run it before pushing.
+
 ## Licence
 
 MIT. See [LICENSE](LICENSE).

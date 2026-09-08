@@ -62,9 +62,10 @@ Each of these is a stop. None is a formality.
       file.
 - [x] `TREASURY_ADDRESS` is **`0x07cA3A6BA32ecB2CF209d9Fb1e2fE8074D4e9946`** — final, fixed 2026-09-08.
       Verified: EIP-55 checksum valid exactly as written; a **Safe v1.4.1** multisig on Base
-      mainnet (singleton `0x29fcB43b…C762`). Its owner set and threshold are readable on
-      chain and are not restated here. It is distinct from every operational wallet — the
-      provider payout address and the facilitator's gas signer among them.
+      mainnet (singleton `0x29fcB43b…C762`), threshold 1, owner
+      Its owner set and threshold are readable on chain and are not restated here. It is
+      distinct from every operational wallet — the provider payout address and the
+      facilitator's gas signer among them.
       A Safe is the right shape here precisely because the splitter's treasury is immutable:
       the signing key can be rotated later without redeploying the contract.
 - [x] You have sent a test transaction to the treasury address on mainnet and it arrived.
@@ -122,9 +123,19 @@ Run the suite with the fork RPC set, or four of the tests will skip:
 
 ## Deploying
 
+### Step 1 — the factory, alone
+
+`FACTORY_ONLY=1` asserts the intent. It is not decoration: without it, "factory only" is
+merely the _absence_ of `PROVIDER_ADDRESS`, and an absence cannot be told apart from a
+variable that failed to load. forge reads `.env` from the project directory, and an
+`export PROVIDER_ADDRESS=...` earlier in the same shell survives — either turns this into a
+two-transaction deploy with nothing on screen to say so. With the flag set, that mistake
+reverts before anything is broadcast.
+
 ```bash
 cd contracts
 
+FACTORY_ONLY=1 \
 USDC_ADDRESS=0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913 \
 TREASURY_ADDRESS=0x07cA3A6BA32ecB2CF209d9Fb1e2fE8074D4e9946 \
 forge script script/Deploy.s.sol \
@@ -134,8 +145,35 @@ forge script script/Deploy.s.sol \
   --ledger        # or --trezor, or --interactive
 ```
 
-Deploy the **factory only** first. Leave `PROVIDER_ADDRESS` unset. Then read every value
-back off the chain (`POST_DEPLOY.md` step 2) before deploying any provider's splitter.
+- [ ] The log reads `PROVIDER_ADDRESS: <unset> - factory only` and `FACTORY_ONLY: 1 (asserted)`.
+      It is printed either way, so a factory-only run never looks like a variable that did
+      not load.
+- [ ] Exactly **one** transaction was broadcast, creating `FatstackSplitterFactory`.
+
+Then read every value back off the chain (`POST_DEPLOY.md` step 2) **before** deploying any
+provider's splitter.
+
+### Step 2 — a provider's splitter
+
+Drop `FACTORY_ONLY` entirely and set `PROVIDER_ADDRESS`. Keeping both would revert, which
+is the point.
+
+```bash
+cd contracts
+
+PROVIDER_ADDRESS=0x... \
+USDC_ADDRESS=0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913 \
+TREASURY_ADDRESS=0x07cA3A6BA32ecB2CF209d9Fb1e2fE8074D4e9946 \
+forge script script/Deploy.s.sol \
+  --rpc-url $BASE_RPC_URL \
+  --broadcast \
+  --verify \
+  --ledger
+```
+
+- [ ] The log names the provider and says a splitter **will** be deployed for it.
+- [ ] `at:` and `predicted:` are the same address. If they differ, stop — the address the
+      registry quotes is derived from the prediction.
 
 ---
 

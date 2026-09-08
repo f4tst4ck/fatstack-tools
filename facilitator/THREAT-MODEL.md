@@ -214,8 +214,8 @@ pnpm --filter @fatstack/facilitator run test:adversarial
 It is **not** part of `pnpm test`. Each pass settles eleven real payments on Base Sepolia, so binding it to every commit would spend testnet USDC continuously and empty the
 payer wallet within a day. It runs on demand and weekly in CI.
 
-**It needs funding.** The payer `0xBA617EEab7B34202eC4047315056163E52FA3218` must hold Base
-Sepolia USDC and the facilitator signer must hold Sepolia ETH for gas. The suite checks
+**It needs funding.** The payer wallet must hold Base Sepolia USDC and the facilitator
+signer must hold Sepolia ETH for gas. The suite checks
 this first and fails with a plain message naming the wallet, because "insufficient balance"
 surfacing from a settlement looks like a broken payment path and is not one.
 
@@ -266,8 +266,9 @@ reachable and put the paywall at the origin, not in front of it.
 ## What this audit does not cover
 
 - **The signer key.** The facilitator's hot key pays gas and holds no user funds, so a
-  compromise costs gas rather than payments. It is currently a key that has been exposed
-  and is awaiting rotation, which is tracked separately and is not a finding of this audit.
+  compromise costs gas rather than payments. Key lifecycle — generation, storage and
+  rotation — is operational practice tracked outside this document, and is not a finding
+  of this audit.
 - **Provider handlers.** A provider's own code runs before settlement is final. We
   document the window; we cannot police what their handler does in it.
 - **Formal verification of the x402 libraries.** We test the behaviour of the composed
