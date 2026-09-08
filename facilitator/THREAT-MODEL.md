@@ -214,17 +214,60 @@ pnpm --filter @fatstack/facilitator run test:adversarial
 It is **not** part of `pnpm test`. Each pass settles eleven real payments on Base Sepolia, so binding it to every commit would spend testnet USDC continuously and empty the
 payer wallet within a day. It runs on demand and weekly in CI.
 
-**It needs funding.** The payer wallet must hold Base Sepolia USDC and the facilitator
-signer must hold Sepolia ETH for gas. The suite checks
+**It needs funding.** The payer `0xBA617EEab7B34202eC4047315056163E52FA3218` must hold Base
+Sepolia USDC and the facilitator signer must hold Sepolia ETH for gas. The suite checks
 this first and fails with a plain message naming the wallet, because "insufficient balance"
 surfacing from a settlement looks like a broken payment path and is not one.
+
+## Found and fixed: the registry disclosed provider origins
+
+**2026-09-08. Fixed the same day.**
+
+`GET /api/registry/tools/<slug>` returned `upstreamUrl` — the address of the provider's own
+server behind `<slug>.fatstack.net` — to any unauthenticated caller. The endpoint exists so
+the edge Worker can resolve where to forward a paid request; it was reachable by everyone.
+
+**Why it matters.** A paywall works by being the only route to the resource. Publishing the
+origin gives an agent a second route, and for any origin that answers whoever reaches it,
+that route is free. Nothing on chain is at risk — no key, no funds, no settled payment — but
+a provider could have been billed nothing for work they performed.
+
+**What was actually reachable.** Our own seed-tool origins answered `404` on every path
+probed, so no bypass was demonstrated against them. Third-party origins are the provider's
+own servers and were never ours to test. The disclosure is treated as exploitable regardless:
+"we could not find the open door" is not "there is no open door".
+
+**Fixed in two layers, because either alone is thin.**
+
+1. **The origin is no longer public.** `upstreamUrl` is disclosed only to a caller
+   presenting `x-fatstack-internal`. Everyone else gets `url` — the public subdomain, which
+   is where a caller should send the request anyway. With the secret unset nothing internal
+   is disclosed to anyone: a missing secret must reveal less, never more.
+2. **A leaked origin is worth nothing.** Our proxy-mode origin Workers refuse any request
+   that does not carry `x-fatstack-origin`, answering `404` rather than `403` so a refusal
+   does not confirm that something is there. That secret is sent only to an allowlist of
+   exact hostnames — never to every upstream, since the proxy also forwards to third-party
+   providers, and telling all of them would be a wider leak than the one being closed. A
+   client-supplied copy of the header is stripped before forwarding, so nobody can mint it.
+
+Layer 2 is what makes the already-public disclosure recoverable. Layer 1 alone would only
+stop the next leak, not the one that already happened.
+
+**Regressions.** `web/src/lib/public-response.test.ts` scans public payloads for internal
+hostnames and origin-shaped keys, rather than asserting field by field — a rule about every
+public response should not be a checklist a new field can slip past. It is checked against
+the exact payload that shipped, so it fails without the fix.
+
+**What this does not cover.** A provider whose own origin is guessable and unauthenticated
+can still be called directly by anyone who finds it. That is true of any x402 deployment and
+is why the SDK binds a payment to its resource. Providers should treat their origin as
+reachable and put the paywall at the origin, not in front of it.
 
 ## What this audit does not cover
 
 - **The signer key.** The facilitator's hot key pays gas and holds no user funds, so a
-  compromise costs gas rather than payments. Key lifecycle — generation, storage and
-  rotation — is operational practice tracked outside this document, and is not a finding
-  of this audit.
+  compromise costs gas rather than payments. It is currently a key that has been exposed
+  and is awaiting rotation, which is tracked separately and is not a finding of this audit.
 - **Provider handlers.** A provider's own code runs before settlement is final. We
   document the window; we cannot police what their handler does in it.
 - **Formal verification of the x402 libraries.** We test the behaviour of the composed

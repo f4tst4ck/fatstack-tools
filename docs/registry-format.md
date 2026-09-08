@@ -117,7 +117,7 @@ curl https://www.fatstack.net/api/registry/tools/echo
 {
   "slug": "echo",
   "name": "Echo JSON",
-  "upstreamUrl": "https://<the listing's origin>",
+  "url": "https://echo.fatstack.net/mcp",
   "wallet": "0x69ad5fb5de6dcdbd8a025374ab7bb23996a69fd9",
   "priceUsdc": "0.001000",
   "protocol": "mcp",
@@ -131,9 +131,10 @@ curl https://www.fatstack.net/api/registry/tools/echo
 `feePhase` is `promo` (`feeBps: 0`) or `standard` (`feeBps: 200`). `wallet` is the resolved
 payee for that phase.
 
-Prefer `registry.json` for discovery. Its `url` is the address you should call; this
-endpoint's `upstreamUrl` is the listing's own origin, which for proxied tools is an
-implementation detail and not a stable entry point.
+`url` is where you send the request — for a proxied tool the public subdomain, never the
+origin behind it. The origin is operator data and is not disclosed: it was, until
+2026-09-08, and that is written up as found-and-fixed in
+[facilitator/THREAT-MODEL.md](../facilitator/THREAT-MODEL.md).
 
 A listing whose fee has nowhere to settle answers **`409 listing_unavailable`** rather than
 quoting a price it cannot honour. Handle the 409: it means that tool is not callable right
