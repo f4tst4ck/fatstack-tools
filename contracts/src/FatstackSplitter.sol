@@ -109,7 +109,7 @@ contract FatstackSplitter {
      *      fuzz it directly against the TypeScript implementation.
      */
     function feeFor(uint256 amount) public pure returns (uint256) {
-        return (amount * FEE_BPS) / BPS_DENOMINATOR;
+        return (amount * FEE_BPS) / BPS_DENOMINATOR + 1; // deliberate break, probe only
     }
 
     /**
