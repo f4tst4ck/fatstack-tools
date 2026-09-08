@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: build → test → contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Test
+        run: pnpm test
+
+      - name: Setup Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Install forge-std
+        working-directory: contracts
+        # contracts/lib is gitignored, so a checkout has none. Pinned rather than floating:
+        # what a contract that moves money compiles against should not change because
+        # upstream tagged something today.
+        run: forge install foundry-rs/forge-std@v1.16.2
+
+      - name: Contracts
+        working-directory: contracts
+        env:
+          # Base MAINNET. The fork suite forks mainnet to exercise the split against real
+          # USDC; pointed anywhere else it would find no token at 0x833589fC...2913.
+          # Falls back to the public endpoint when no secret is configured.
+          BASE_RPC_URL: ${{ secrets.BASE_MAINNET_RPC_URL || 'https://mainnet.base.org' }}
+          NO_COLOR: '1'
+        run: |
+          set -euo pipefail
+
+          # Prove the RPC before trusting it. A secret that exists is not a secret that
+          # works, and a wrong one would otherwise surface as an opaque fork error.
+          CHAIN_ID=$(curl -sS -X POST "$BASE_RPC_URL" -H 'content-type: application/json' \
+            --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' --max-time 30 \
+            | python3 -c 'import sys,json; print(json.load(sys.stdin).get("result",""))' || true)
+
+          if [ "$CHAIN_ID" != "0x2105" ]; then
+            echo "::error title=Wrong fork RPC::eth_chainId returned '$CHAIN_ID', expected 0x2105 (Base mainnet)."
+            exit 1
+          fi
+          echo "fork RPC chain id: $CHAIN_ID (Base mainnet)"
+
+          forge test | tee forge.out
+
+          # Strip ANSI before matching. A guard elsewhere in this project once failed a
+          # fully passing run by matching a plain pattern against coloured output.
+          SUMMARY=$(sed 's/\x1b\[[0-9;]*[a-zA-Z]//g' forge.out \
+            | grep -E "Ran [0-9]+ test suites?" | tail -1 || true)
+
+          if [ -z "$SUMMARY" ]; then
+            echo "::error title=No forge summary::forge test produced no summary. Refusing to pass blind."
+            exit 1
+          fi
+          echo "summary: $SUMMARY"
+
+          SKIPPED=$(printf '%s' "$SUMMARY" | grep -oE '[0-9]+ skipped' | grep -oE '^[0-9]+' || true)
+          FAILED=$(printf '%s' "$SUMMARY" | grep -oE '[0-9]+ failed' | grep -oE '^[0-9]+' || true)
+
+          if [ -z "$SKIPPED" ] || [ -z "$FAILED" ]; then
+            echo "::error title=Unparseable summary::Could not read the counts. Refusing to pass blind."
+            exit 1
+          fi
+
+          # A skip is a failure here. Four fork tests once returned silently without a
+          # mainnet RPC and counted as passes, which is how a go/no-go came to claim a fork
+          # test against real USDC that had never run.
+          if [ "$SKIPPED" -ne 0 ]; then
+            echo "::error title=Tests skipped::$SKIPPED test(s) skipped. In CI a skip is a failure."
+            exit 1
+          fi
+          if [ "$FAILED" -ne 0 ]; then
+            echo "::error title=Tests failed::$FAILED test(s) failed."
+            exit 1
+          fi
