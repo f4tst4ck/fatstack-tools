@@ -253,7 +253,7 @@ own servers and were never ours to test. The disclosure is treated as exploitabl
 Layer 2 is what makes the already-public disclosure recoverable. Layer 1 alone would only
 stop the next leak, not the one that already happened.
 
-**Regressions.** `web/src/lib/public-response.test.ts` scans public payloads for internal
+**Regressions.** A test in the registry service scans public payloads for internal
 hostnames and origin-shaped keys, rather than asserting field by field — a rule about every
 public response should not be a checklist a new field can slip past. It is checked against
 the exact payload that shipped, so it fails without the fix.
