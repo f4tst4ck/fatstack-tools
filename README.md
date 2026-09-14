@@ -14,6 +14,19 @@ period ends, through an immutable splitter contract that pays the provider and a
 platform fee in one atomic transaction. If a change would let Fatstack move someone
 else's money, it is a bug.
 
+## Use it from an agent, in one line
+
+Add one MCP server and your agent has the whole catalog:
+
+```
+https://www.fatstack.net/api/mcp
+```
+
+Listing what is available is free; only calls cost anything. There is no account, no API key
+and no signup — the wallet is the identity. Paying needs an
+[x402-capable client](https://www.fatstack.net/docs/agent-payments); any MCP client can browse.
+Published in the official MCP registry as `net.fatstack/registry`.
+
 This repository holds the parts you run, audit, or depend on. The marketplace application
 itself is closed; everything an integrator touches is here, under MIT.
 
