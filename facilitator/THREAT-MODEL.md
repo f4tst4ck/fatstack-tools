@@ -273,3 +273,53 @@ reachable and put the paywall at the origin, not in front of it.
   document the window; we cannot police what their handler does in it.
 - **Formal verification of the x402 libraries.** We test the behaviour of the composed
   system, not the internals of `@x402/core`.
+
+## Injection perimeter: the aggregating MCP server
+
+**Added 2026-09-14.** `/api/mcp` serves the whole catalogue as one MCP server, which changes
+where provider text lands. It is no longer only rendered on a page a person reads — it is
+placed directly into the context of any agent that connects, by a first-party endpoint the
+agent trusts. A tool name and description are instructions as far as a model is concerned,
+so this is an injection surface, not a display surface.
+
+### What the perimeter actually is
+
+1. **Screening at submission.** `POST /api/tools` runs a sanctions screen on the wallet and
+   an LLM screen over the submitted name and description before anything is stored. A
+   submission that screens as rejected never reaches the queue.
+2. **Manual approval.** No listing goes live without a human approving it. There is no
+   auto-approve, no score threshold, and no trusted-provider bypass.
+3. **Text is immutable after submission.** The provider-facing update route accepts price,
+   pause state, protocol and a telemetry-token reissue. It does **not** accept name or
+   description, so a listing's stored text cannot be edited into something else after it was
+   screened and approved. There is nothing to re-screen because there is no edit path.
+4. **Source labeling.** Every tool description the aggregator emits is wrapped in a labelled
+   untrusted block carrying an explicit instruction to treat the contents as data.
+
+### The gap this endpoint introduces — **OPEN**
+
+The aggregator does not serve only stored, screened text. It asks each listing's own MCP
+server what it offers, and relays the **tool names, descriptions and input schemas that come
+back** — text fetched live from the provider's infrastructure, which has passed through no
+screen at any point.
+
+A provider can therefore be approved on the strength of a screened listing description and
+then serve entirely different tool descriptions from their own server, with a catalogue
+cache refresh as the only delay. What limits the damage is the labeling in (4), which is a
+mitigation rather than a control: it tells a model the text is untrusted, and relies on the
+model honouring that.
+
+Screening is not applied here because the text arrives per catalogue build rather than once
+per listing, so the LLM screen would run against every listing on every cache miss. Two
+options, neither implemented:
+
+- **Serve only stored text.** Take the name and description from the approved record and use
+  the upstream response for tool names and input schemas alone. Cheap, and it removes the
+  free-text path entirely. Parameter descriptions inside a schema remain unscreened.
+- **Screen at catalogue build.** Run the existing screen over upstream text when the cache
+  is rebuilt, and drop a listing whose live text now screens as hostile.
+
+Tracked in `docs/STATE.md`. Recording it here rather than in a commit message because an
+injection surface that exists and is undocumented is indistinguishable from one nobody
+noticed.
+
