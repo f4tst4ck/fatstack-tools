@@ -11,8 +11,8 @@ importers:
   integrations/ai-sdk-tools:
     dependencies:
       '@fatstack/x402':
-        specifier: 0.2.0
-        version: 0.2.0(@x402/express@2.25.0(express@4.22.2)(typescript@5.9.3))(@x402/hono@2.25.0(hono@4.13.7)(typescript@5.9.3))(@x402/next@2.25.0(next@16.3.4(@types/node@22.20.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(typescript@5.9.3))(typescript@5.9.3)
+        specifier: ^0.2.1
+        version: 0.2.1(@x402/express@2.25.0(express@4.22.2)(typescript@5.9.3))(@x402/hono@2.25.0(hono@4.13.7)(typescript@5.9.3))(@x402/next@2.25.0(next@16.3.4(@types/node@22.20.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(typescript@5.9.3))(typescript@5.9.3)
       zod:
         specifier: ^3.24.1
         version: 3.25.76
@@ -571,8 +571,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@fatstack/x402@0.2.0':
-    resolution: {integrity: sha512-HrildYdDm5oleOa10gaBUk6Do8J4Xs7nJlSBUvx1Uebj1d9jNE8S2LCn6sgnMkuswAMuj3QQTd+91na6GfSHLw==}
+  '@fatstack/x402@0.2.1':
+    resolution: {integrity: sha512-Lkf2T0igy663Uy6EhuqBNC07pk/JBuLs4z1BRvNAYX+U5pI6tIabGzQPJyd9amy5LtPuFg9R1zhl2lVOBP+Ejg==}
     peerDependencies:
       '@x402/express': ^2.24.0
       '@x402/hono': ^2.24.0
@@ -2139,7 +2139,7 @@ snapshots:
   '@esbuild/win32-x64@0.28.2':
     optional: true
 
-  '@fatstack/x402@0.2.0(@x402/express@2.25.0(express@4.22.2)(typescript@5.9.3))(@x402/hono@2.25.0(hono@4.13.7)(typescript@5.9.3))(@x402/next@2.25.0(next@16.3.4(@types/node@22.20.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(typescript@5.9.3))(typescript@5.9.3)':
+  '@fatstack/x402@0.2.1(@x402/express@2.25.0(express@4.22.2)(typescript@5.9.3))(@x402/hono@2.25.0(hono@4.13.7)(typescript@5.9.3))(@x402/next@2.25.0(next@16.3.4(@types/node@22.20.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(typescript@5.9.3))(typescript@5.9.3)':
     dependencies:
       '@x402/core': 2.25.0
       '@x402/evm': 2.25.0(typescript@5.9.3)
