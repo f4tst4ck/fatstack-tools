@@ -1,7 +1,13 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "lib": ["ES2023", "DOM", "DOM.Iterable"]
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    // The published example imports the package by its public name, exactly as a reader
+    // would paste it. This resolves that name to the source so the snippet compiles as
+    // written, rather than being rewritten to a relative path it would never be used with.
+    "paths": {
+      "@fatstack/ai-sdk-tools": ["./src/index.ts"]
+    }
   },
-  "include": ["src/**/*.ts", "tsup.config.ts"]
+  "include": ["src/**/*.ts", "example/**/*.ts", "tsup.config.ts"]
 }
