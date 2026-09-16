@@ -7,7 +7,7 @@ Discovery is free. Calling a tool issues a payment from your wallet, wallet to w
 platform is never a payee and never holds funds.
 
 ```bash
-npm install @fatstack/ai-sdk-tools ai
+npm install @fatstack/ai-sdk-tools ai viem @ai-sdk/openai
 ```
 
 ## Usage

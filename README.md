@@ -116,7 +116,7 @@ import { privateKeyToAccount } from 'viem/accounts';
 
 const tools = await fatstackTools({
   wallet: privateKeyToAccount(process.env.AGENT_PRIVATE_KEY),
-  networks: ['base-sepolia'],
+  networks: ['base'],              // the catalogue is mainnet-only; USDC here is real
   guards: {
     maxPerDay: 0.5,                 // hard ceiling per UTC day, in USD
     maxPerCall: 0.01,               // refuse any single call dearer than this
