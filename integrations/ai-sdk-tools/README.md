@@ -68,28 +68,25 @@ const tools = await fatstackTools({
 Price filtering happens before the model sees a tool, so it cannot choose to overspend on
 something you never intended to offer.
 
-## Running the example on Base Sepolia
+## Running the example
 
-The example finds a tool, pays $0.001 of testnet USDC, and prints the result.
+The example runs against **Base mainnet** and spends real USDC. That is not a choice — it is
+what the public catalogue serves: every live listing settles on `eip155:8453`, so a Sepolia
+configuration discovers nothing and can never complete a call. `fatstackTools` now refuses that
+combination outright rather than building tools it will decline to pay for.
 
-```bash
-AGENT_PRIVATE_KEY=0x... pnpm example
-```
+**Your wallet needs USDC on Base and no ETH.** x402 payments are signed off-chain and settled by
+the facilitator, so the agent never pays gas.
 
-### Funding a test wallet
+1. Generate a throwaway wallet and fund it with a small amount of USDC on Base. A dollar covers
+   hundreds of calls at typical listing prices.
+2. Set the spend guards. `maxPerDay` is required and has no default; `maxPerCall` bounds a single
+   call. They are evaluated after the quote is known and before anything is signed, so exceeding
+   one costs nothing.
+3. Fund only what you are willing to lose in a day. Payments are final and there are no refunds.
 
-**Your wallet needs Base Sepolia USDC and no ETH.** x402 payments are signed off-chain and
-a facilitator broadcasts them, so the payer never sends a transaction and never needs gas.
-This trips people up: funding the payer with ETH does nothing.
-
-1. Create a throwaway key. Do not reuse a wallet that holds anything.
-2. Get Base Sepolia USDC from [Circle's testnet faucet](https://faucet.circle.com), choosing
-   **Base Sepolia** as the network. $1 covers a thousand calls at the usual listing price.
-3. Check the balance — the USDC contract on Base Sepolia is
-   `0x036CbD53842c5426634e7929541eC2318f3dCF7e`.
-4. Run the example. If it reports insufficient funds, the balance is on the wrong chain:
-   Ethereum Sepolia and Base Sepolia are different networks and faucets default to the
-   former.
+**Testing against a testnet** requires a catalogue that serves one. Point `registryUrl` at it;
+the public catalogue is mainnet-only.
 
 ## Payments are final
 
