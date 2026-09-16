@@ -1,6 +1,6 @@
 {
   "name": "@fatstack/ai-sdk-tools",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Vercel AI SDK tools that discover Fatstack listings and pay per call in USDC via x402 on Base",
   "license": "MIT",
   "type": "module",
