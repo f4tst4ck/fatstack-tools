@@ -1,0 +1,56 @@
+{
+  "name": "@fatstack/mcp-bridge",
+  "version": "0.1.0",
+  "description": "stdio MCP server that relays to the hosted Fatstack catalogue and pays per call in USDC via x402 on Base",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "fatstack-mcp": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "stdio",
+    "x402",
+    "usdc",
+    "base",
+    "agent-payments"
+  ],
+  "homepage": "https://www.fatstack.net",
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --config ../eslint.config.mjs",
+    "start": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@fatstack/x402": "^0.2.1",
+    "viem": "^2.56.1",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsup": "^8.3.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.9"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/f4tst4ck/fatstack-tools.git",
+    "directory": "integrations/mcp-bridge"
+  },
+  "bugs": {
+    "url": "https://github.com/f4tst4ck/fatstack-tools/issues"
+  }
+}
