@@ -15,13 +15,19 @@ import { describe, expect, it } from 'vitest';
 const EXAMPLE = readFileSync(new URL('../example/ai-sdk-registry.ts', import.meta.url), 'utf8');
 
 describe('the published example is safe to paste', () => {
-  it('pays on a testnet', () => {
-    expect(EXAMPLE).toMatch(/networks:\s*\['base-sepolia'\]/);
+  it('names a network the public catalogue actually serves', () => {
+    // This assertion was inverted. It used to require `base-sepolia`, on the reasoning that a
+    // copy-paste should not spend real money — which is a good instinct applied to a network
+    // that has no listings on it. The published example could never have completed a call:
+    // the catalogue is `eip155:8453` only, so every tool it built would have refused to pay.
+    // An automated reviewer on the AI SDK registry caught it; this test had been holding it
+    // in place.
+    expect(EXAMPLE).toMatch(/networks:\s*\['base'\]/);
   });
 
-  it('never names mainnet', () => {
-    // `['base']` would type-check and would spend real USDC on a first run.
-    expect(EXAMPLE).not.toMatch(/networks:\s*\[[^\]]*'base'/);
+  it('says plainly that it spends real money', () => {
+    // Safety now comes from the guards and from saying so, not from a network nobody serves.
+    expect(EXAMPLE).toMatch(/REAL USDC/);
   });
 
   it('caps the day, not only the call', () => {
