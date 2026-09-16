@@ -1,4 +1,4 @@
-import { payFetch } from '@fatstack/x402';
+import { NETWORKS, payFetch } from '@fatstack/x402';
 import { tool, type ToolSet } from 'ai';
 import { z } from 'zod';
 
@@ -50,7 +50,47 @@ export async function fatstackTools(options: FatstackToolsOptions) {
   const networks = options.networks ?? ['base'];
 
   const listings = await fetchListings(options);
-  return buildTools(listings, { ...options, guards, networks });
+
+  /*
+   * Only listings this agent is willing to pay for.
+   *
+   * `networks` was previously used for nothing but the `payFetch` allowlist, so a catalogue
+   * on one chain and an agent configured for another produced a full ToolSet that refused
+   * every payment — the model chose a tool, called it, and the client declined at the last
+   * step for a reason the model could not act on.
+   *
+   * The documented quickstart hit exactly this: it said `['base-sepolia']` while the public
+   * catalogue serves only `eip155:8453`, so the published example could never have completed
+   * a call. It was an automated reviewer on the AI SDK registry that noticed, not us.
+   */
+  const payable: string[] = networks.map((name) => NETWORKS[name].caip2);
+  const usable = listings.filter((listing) => payable.includes(listing.payment.network));
+
+  if (usable.length === 0 && listings.length > 0) {
+    // Loud, and at construction rather than at call time. The catalogue is reachable and
+    // non-empty; it simply has nothing this agent could pay for.
+    throw new NetworkMismatchError(networks, listings);
+  }
+
+  return buildTools(usable, { ...options, guards, networks });
+}
+
+/** No listing in the catalogue settles on a network this agent was configured to pay on. */
+export class NetworkMismatchError extends Error {
+  constructor(
+    readonly configured: readonly ('base' | 'base-sepolia')[],
+    listings: readonly FatstackListing[],
+  ) {
+    const offered = [...new Set(listings.map((l) => l.payment.network))].join(', ');
+    super(
+      `The catalogue has ${listings.length} listing(s), none on a network you will pay for. ` +
+        `Configured: ${configured.join(', ')} (${configured.map((n) => NETWORKS[n].caip2).join(', ')}). ` +
+        `Offered: ${offered}. ` +
+        'Set `networks` to match the catalogue, or point `registryUrl` at one that serves ' +
+        'the network you want.',
+    );
+    this.name = 'NetworkMismatchError';
+  }
 }
 
 /** The tool-building half, separated so it can be tested without a network. */

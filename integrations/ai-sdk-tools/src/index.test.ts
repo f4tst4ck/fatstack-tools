@@ -1,6 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { buildTools, fatstackTools, MissingSpendGuardError, toolNameFor } from './index.js';
+import {
+  buildTools,
+  fatstackTools,
+  MissingSpendGuardError,
+  NetworkMismatchError,
+  toolNameFor,
+} from './index.js';
 import { fetchListings } from './registry.js';
 
 const listing = {
@@ -143,5 +149,94 @@ describe('reading the catalogue', () => {
     const wrong = (async () =>
       new Response(JSON.stringify({ items: [] }), { status: 200 })) as typeof globalThis.fetch;
     await expect(fetchListings({ fetch: wrong })).rejects.toThrow(/expected shape/);
+  });
+});
+
+describe('a catalogue the agent cannot pay for fails at construction', () => {
+  const mainnetListing = {
+    slug: 'echo',
+    name: 'Echo',
+    description: 'echoes',
+    url: 'https://echo.fatstack.net/mcp',
+    payment: {
+      scheme: 'exact',
+      network: 'eip155:8453',
+      asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+      payTo: '0xprovider',
+      amountUsd: '0.001',
+    },
+  };
+
+  /** A real Response, so the test exercises the same parse production does. */
+  const catalogue =
+    (tools: unknown[]): typeof fetch =>
+    async () =>
+      new Response(JSON.stringify({ tools }), {
+        headers: { 'content-type': 'application/json' },
+      });
+
+  it('throws rather than handing back tools it will refuse to pay for', async () => {
+    // The defect an automated reviewer found before we did: the documented example said
+    // base-sepolia while the catalogue served only mainnet. Tools were built, the model
+    // picked one, and payment was declined at the last step.
+    await expect(
+      fatstackTools({
+        wallet,
+        networks: ['base-sepolia'],
+        guards: { maxPerDay: 1 },
+        fetch: catalogue([mainnetListing]),
+      }),
+    ).rejects.toThrow(NetworkMismatchError);
+  });
+
+  it('names both sides of the mismatch, so the fix is obvious', async () => {
+    const error = await fatstackTools({
+      wallet,
+      networks: ['base-sepolia'],
+      guards: { maxPerDay: 1 },
+      fetch: catalogue([mainnetListing]),
+    }).catch((e: unknown) => e as Error);
+
+    expect(error.message).toContain('eip155:84532');
+    expect(error.message).toContain('eip155:8453');
+  });
+
+  it('builds normally when the networks agree', async () => {
+    const tools = await fatstackTools({
+      wallet,
+      networks: ['base'],
+      guards: { maxPerDay: 1 },
+      fetch: catalogue([mainnetListing]),
+    });
+    expect(Object.keys(tools)).toHaveLength(1);
+  });
+
+  it('keeps only the payable listings when the catalogue is mixed', async () => {
+    const tools = await fatstackTools({
+      wallet,
+      networks: ['base'],
+      guards: { maxPerDay: 1 },
+      fetch: catalogue([
+        mainnetListing,
+        {
+          ...mainnetListing,
+          slug: 'sepolia-one',
+          payment: { ...mainnetListing.payment, network: 'eip155:84532' },
+        },
+      ]),
+    });
+    expect(Object.keys(tools)).toHaveLength(1);
+  });
+
+  it('does not throw on a genuinely empty catalogue', async () => {
+    // Empty is not a mismatch. It is a catalogue with nothing in it, and saying "you cannot
+    // pay for any of these" about zero listings would be nonsense.
+    const tools = await fatstackTools({
+      wallet,
+      networks: ['base-sepolia'],
+      guards: { maxPerDay: 1 },
+      fetch: catalogue([]),
+    });
+    expect(Object.keys(tools)).toHaveLength(0);
   });
 });

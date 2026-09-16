@@ -20,10 +20,16 @@ import { fatstackTools } from '@fatstack/ai-sdk-tools';
 import { privateKeyToAccount } from 'viem/accounts';
 
 // Discovery is free and happens once; only calling a tool costs anything.
+//
+// `networks` must match what the catalogue serves. The public catalogue is Base mainnet, so
+// this spends REAL USDC — the spend guards below are what bound it, not the network. An
+// earlier version of this example said 'base-sepolia' to look safe; it could never have
+// completed a call, because no Sepolia listing exists to pay.
+//
 // `guards` is required — omit it and construction fails before the catalogue is fetched.
 const tools = await fatstackTools({
   wallet: privateKeyToAccount(process.env.AGENT_PRIVATE_KEY as `0x${string}`),
-  networks: ['base-sepolia'],
+  networks: ['base'],
   guards: { maxPerDay: 0.5, maxPerCall: 0.01 },
 });
 
