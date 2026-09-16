@@ -5,12 +5,18 @@ own. Discovery is free. Only calls cost money.
 
 ## Before you start
 
-You need a funded wallet. On **Base Sepolia** that means testnet USDC from a faucet, plus
-nothing else — the agent signs authorisations and never pays gas, so it needs no ETH.
+You need a wallet holding USDC on **Base mainnet**, and nothing else — the agent signs
+authorisations and never pays gas, so it needs no ETH.
 
-Start on Sepolia. On Base mainnet the USDC is real and **payments are final: there are no
-refunds and no chargebacks.** An agent with a key and no cap can spend everything in the
-wallet.
+**There is no testnet path through the public catalogue.** Every live listing settles on
+`eip155:8453`, so configuring `base-sepolia` discovers an empty catalogue and can never
+complete a call. This page used to say "start on Sepolia", which was advice that could not
+work.
+
+So the first call spends real money. **Payments are final: there are no refunds and no
+chargebacks**, and an agent with a key and no cap can spend everything in the wallet. Fund a
+throwaway wallet with a dollar or two, set the guards below, and treat that balance as the
+most the agent can lose.
 
 ## Option A — a tool set for the Vercel AI SDK
 
@@ -25,7 +31,7 @@ import { privateKeyToAccount } from 'viem/accounts';
 
 const tools = await fatstackTools({
   wallet: privateKeyToAccount(process.env.AGENT_PRIVATE_KEY as `0x${string}`),
-  networks: ['base-sepolia'],
+  networks: ['base'],
   guards: {
     maxPerDay: 0.5,     // hard USD ceiling per UTC day
     maxPerCall: 0.01,   // refuse any single call dearer than this
