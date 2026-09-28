@@ -5,6 +5,7 @@ import {Test, stdJson} from "forge-std/Test.sol";
 import {FatstackSplitter} from "../src/FatstackSplitter.sol";
 import {MockUSDC} from "./mocks/MockUSDC.sol";
 import {ReentrantToken} from "./mocks/ReentrantToken.sol";
+import {SmartAccount, HostileRecipient} from "./mocks/SmartAccount.sol";
 
 contract FatstackSplitterTest is Test {
     using stdJson for string;
@@ -48,6 +49,51 @@ contract FatstackSplitterTest is Test {
         assertEq(splitter.FEE_BPS(), 200);
         assertEq(splitter.TREASURY(), TREASURY);
         assertEq(splitter.USDC(), address(usdc));
+    }
+
+    // ── paying a smart account ──────────────────────────────────────────────
+    //
+    // The "monetize your MCP" flow hands a provider a passkey wallet, which is an ERC-4337
+    // smart account rather than an EOA. Before building any of that, these prove the payout
+    // leg needs no change: USDC to a contract is a plain balance credit.
+
+    function test_paysASmartAccountLikeAnyOtherAddress() public {
+        SmartAccount account = new SmartAccount();
+        FatstackSplitter s = new FatstackSplitter(address(usdc), address(account), TREASURY);
+
+        usdc.mint(PAYER, 1_000_000);
+        s.payWithAuthorization(TOOL_ID, PAYER, 1_000_000, 0, type(uint256).max, bytes32(uint256(9)), 0, 0, 0);
+
+        assertEq(usdc.balanceOf(address(account)), 980_000, "smart account must receive the 98%");
+        assertEq(usdc.balanceOf(TREASURY), 20_000);
+        assertEq(usdc.balanceOf(address(s)), 0, "contract must hold nothing after");
+    }
+
+    function test_paysARecipientThatRevertsOnEveryCallback() public {
+        // ERC-20 transfer does not call the recipient. This recipient reverts on any call, so
+        // if a notification step were ever introduced the payout would fail here rather than
+        // quietly stop working against real smart accounts.
+        HostileRecipient hostile = new HostileRecipient();
+        FatstackSplitter s = new FatstackSplitter(address(usdc), address(hostile), TREASURY);
+
+        usdc.mint(PAYER, 500_000);
+        s.payWithAuthorization(TOOL_ID, PAYER, 500_000, 0, type(uint256).max, bytes32(uint256(10)), 0, 0, 0);
+
+        assertEq(usdc.balanceOf(address(hostile)), 490_000);
+    }
+
+    function test_paysAnAddressWithNoCodeYet() public {
+        // A passkey wallet is counterfactual until its first transaction: the address is
+        // derived and can be paid before the account is deployed. This is the same assertion
+        // as an EOA payout, and that equivalence is the finding — nothing special is needed.
+        address counterfactual = address(0xC0FFEE1234);
+        assertEq(counterfactual.code.length, 0, "precondition: nothing deployed there");
+
+        FatstackSplitter s = new FatstackSplitter(address(usdc), counterfactual, TREASURY);
+        usdc.mint(PAYER, 300_000);
+        s.payWithAuthorization(TOOL_ID, PAYER, 300_000, 0, type(uint256).max, bytes32(uint256(11)), 0, 0, 0);
+
+        assertEq(usdc.balanceOf(counterfactual), 294_000, "an undeployed account can be paid");
     }
 
     // ── the split ───────────────────────────────────────────────────────────
